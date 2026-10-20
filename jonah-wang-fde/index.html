@@ -1,0 +1,837 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jonah Wang — AI Solution Architect</title>
+<meta name="description" content="Jonah Wang, AI Solution Architect at BytePlus: translating AI capabilities into real business value through AI-driven workflow automation.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* =====================================================================
+     THEME — to recolour the page, change --accent (one line).
+     Every accent shade below (text-on-light, tints, outlines, gradients,
+     dark-surface tints) is derived from it with color-mix().
+     Bright, saturated accents work best (the accent is also used as text
+     on the dark hero and sidebar). If you pick a DARK accent, set
+     --on-accent to #ffffff so the solid button text stays readable.
+     ===================================================================== */
+  :root{
+    --accent:#29db5b;
+    --on-accent:#0b0d09;                     /* text on solid accent buttons */
+
+    /* derived accent shades — normally leave these alone */
+    --accent-ink:color-mix(in oklab, var(--accent) 52%, #000);   /* accent text on light backgrounds */
+    --accent-2:color-mix(in oklab, var(--accent) 55%, #1f8a9e);  /* secondary hue for gradients */
+    --accent-3:color-mix(in oklab, var(--accent) 60%, #cfe800);  /* tertiary hue for gradients */
+    --accent-deep:color-mix(in oklab, var(--accent) 82%, #000);  /* button gradient end */
+    --accent-soft:color-mix(in srgb, var(--accent) 12%, transparent);
+    --accent-tint:color-mix(in srgb, var(--accent) 8%, transparent);
+    --accent-line:color-mix(in srgb, var(--accent) 45%, transparent);
+    --accent-glow:color-mix(in srgb, var(--accent) 55%, transparent);
+
+    /* dark surfaces (nav, sidebar, hero) — lightly tinted toward the accent */
+    --black:#0b0d09;
+    --carbon:#14180f;
+    --dark-raise:color-mix(in oklab, var(--accent) 6%, #23271f);  /* raised controls on dark */
+    --dark-line:color-mix(in oklab, var(--accent) 8%, #353b2f);   /* borders on dark */
+    --dark-tint:color-mix(in oklab, var(--accent) 18%, #10140c);  /* hero / nav gradient tint */
+
+    /* text */
+    --ink:#12161a;            /* body text on light */
+    --ink-soft:#4b5563;       /* secondary text on light */
+    --ink-muted:#6b7280;      /* labels, footer */
+    --chip-ink:#2b3324;       /* text inside light chips */
+    --on-dark:#f3f6ee;        /* default text on dark */
+    --on-dark-strong:#ffffff; /* hero lead sentence, strip labels */
+    --on-dark-nav:#e6ebde;    /* top-menu links */
+    --on-dark-body:#d7ddcf;   /* sidebar bio */
+    --on-dark-soft:#e6db74;   /* hero paragraph */
+    --on-dark-muted:#9aa38e;  /* stat captions */
+    --placeholder:#5f6b52;    /* image-placeholder label */
+
+    /* light surfaces */
+    --surface:#ffffff;
+    --surface-2:#f4f7ef;
+    --chip:#f1f4ec;
+    --line:#e2e8d8;
+
+    --grad-nav:linear-gradient(120deg,var(--black) 0%,var(--dark-tint) 100%);
+    --grad-sidebar:linear-gradient(160deg,var(--carbon) 0%,#050704 100%);
+    --grad-hero:linear-gradient(150deg,var(--dark-tint) 0%,var(--carbon) 45%,#050704 100%);
+    --grad-btn:linear-gradient(135deg,var(--accent),var(--accent-deep));
+    --grad-bar:linear-gradient(90deg,var(--accent),var(--accent-2));
+    --shadow-sm:0 1px 2px rgba(11,13,9,.06),0 1px 3px rgba(11,13,9,.1);
+    --shadow-lg:0 12px 24px -6px rgba(11,13,9,.14),0 6px 12px -8px rgba(11,13,9,.1);
+
+    --radius:14px;
+    --radius-sm:10px;
+    --radius-lg:20px;
+    --sidebar:280px;
+    --main-max:900px;
+    --pad:clamp(16px,4vw,40px);
+    --mono:'JetBrains Mono',ui-monospace,Consolas,'Courier New',monospace;
+    /* FONT — the whole page uses --font. For a sans-serif look instead of mono:
+       1) in the Google Fonts <link> above, use family=Inter:wght@400;500;600;700
+       2) set --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; */
+    --font:var(--mono);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;scroll-padding-top:72px;}
+  body{
+    margin:0;background:var(--surface-2);color:var(--ink);
+    font-family:var(--font);
+    line-height:1.6;-webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:var(--font);line-height:1.15;margin:0;}
+  p{margin:0;}
+  a{color:inherit;}
+  img{max-width:100%;height:auto;display:block;}
+  .eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;}
+  .ico svg{width:17px;height:17px;stroke:var(--accent);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+
+  /* ---------- top nav ---------- */
+  header.site{position:sticky;top:0;z-index:50;background:var(--grad-nav);border-bottom:1px solid var(--dark-line);}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;max-width:1400px;margin:0 auto;padding:8px var(--pad);min-height:58px;}
+  .brand{display:inline-flex;align-items:center;min-height:44px;font-family:var(--font);font-weight:900;color:var(--on-dark-strong);text-decoration:none;font-size:1.05rem;}
+  .nav-links{display:none;list-style:none;margin:0;padding:0;gap:4px;}
+  .nav-links a{
+    display:inline-flex;align-items:center;min-height:44px;padding:0 16px;border-radius:999px;border:1px solid transparent;
+    color:var(--on-dark-nav);text-decoration:none;font-size:.85rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;
+    transition:all .25s cubic-bezier(.4,0,.2,1);
+  }
+  .nav-links a:hover{color:var(--accent);}
+  .nav-links a.active{color:var(--accent);background:var(--accent-soft);border-color:var(--accent-line);}
+  .menu-btn{width:44px;height:44px;border-radius:10px;border:1px solid var(--dark-line);background:transparent;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .menu-btn span,.menu-btn span::before,.menu-btn span::after{content:"";display:block;width:18px;height:2px;background:var(--on-dark);position:relative;}
+  .menu-btn span::before{position:absolute;top:-6px;}
+  .menu-btn span::after{position:absolute;top:6px;}
+  #mobile-menu{display:none;flex-direction:column;padding:4px var(--pad) 14px;}
+  #mobile-menu.open{display:flex;}
+  #mobile-menu a{color:var(--on-dark);text-decoration:none;padding:12px 4px;font-weight:600;font-size:.95rem;border-top:1px solid var(--dark-line);}
+  @media (min-width:960px){
+    .brand{display:none;}
+    .nav{justify-content:center;}
+    .nav-links{display:flex;}
+    .menu-btn{display:none;}
+    #mobile-menu{display:none !important;}
+  }
+
+  /* ---------- shell: sidebar + main ---------- */
+  .shell{margin:0;}
+  @media (min-width:1024px){
+    .shell{display:grid;grid-template-columns:var(--sidebar) 1fr;}
+    .shell > *{min-width:0;}
+  }
+
+  .sidebar{background:var(--grad-sidebar);color:var(--on-dark);text-align:center;padding:40px 20px 36px;}
+  @media (min-width:1024px){
+    .sidebar-inner{position:sticky;top:98px;}
+  }
+  .portrait{
+    width:120px;aspect-ratio:2/3;margin:0 auto 26px;border-radius:999px;overflow:hidden;
+    border:4px solid var(--dark-raise);box-shadow:0 0 0 1px var(--accent-line),0 12px 30px rgba(0,0,0,.45);
+    background:var(--dark-raise);
+  }
+  .portrait img{width:100%;height:100%;object-fit:cover;}
+  .img-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--placeholder);font-size:.7rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;}
+  .side-name{font-size:1.8rem;font-weight:700;color:var(--on-dark-strong);}
+  .side-role{margin-top:10px;font-size:1.05rem;font-weight:700;color:var(--accent);line-height:1.45;padding-bottom:16px;border-bottom:1px solid var(--dark-line);}
+  .side-bio{margin-top:16px;font-size:.95rem;color:var(--on-dark-body);line-height:1.6;}
+  .side-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 6px;margin-top:22px;}
+  .side-tag{font-size:.74rem;font-weight:700;color:var(--accent);border:1px solid var(--accent-line);background:var(--accent-tint);border-radius:999px;padding:3px 10px;}
+  .side-social{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:26px;}
+  .social-btn{
+    display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:999px;
+    background:var(--dark-raise);border:1px solid var(--dark-line);color:var(--on-dark);text-decoration:none;font-weight:600;font-size:.9rem;
+    transition:all .25s cubic-bezier(.4,0,.2,1);
+  }
+  .social-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .social-btn svg{width:17px;height:17px;fill:currentColor;}
+
+  .main{background:var(--surface);padding:clamp(28px,5vw,60px) var(--pad) clamp(48px,6vw,72px);}
+  @media (min-width:1024px){
+    .main{min-height:calc(100vh - 58px);}
+  }
+  .main-inner{max-width:var(--main-max);margin:0 auto;}
+  .main-inner > section + section{margin-top:clamp(36px,5vw,48px);}
+
+  /* ---------- hero card ---------- */
+  .hero{
+    position:relative;overflow:hidden;background:var(--grad-hero);color:var(--on-dark);
+    border-radius:var(--radius-lg);border:1px solid var(--dark-line);box-shadow:var(--shadow-lg);
+    padding:clamp(24px,4.5vw,40px) clamp(18px,4vw,38px);
+  }
+  .hero::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:linear-gradient(var(--accent-tint) 1px,transparent 1px),linear-gradient(90deg,var(--accent-tint) 1px,transparent 1px);
+    background-size:48px 48px;
+    -webkit-mask-image:linear-gradient(160deg,#000 0%,transparent 70%);mask-image:linear-gradient(160deg,#000 0%,transparent 70%);
+  }
+  .hero > *{position:relative;}
+  .hero-pill{display:inline-block;color:var(--accent);border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:999px;padding:7px 14px;line-height:1.5;}
+  .hero h1{margin-top:18px;font-size:clamp(2.2rem,6vw,3.3rem);font-weight:700;color:var(--on-dark-strong);letter-spacing:-.01em;}
+  .hero-lede{margin-top:18px;font-size:clamp(1.05rem,2.2vw,1.35rem);font-weight:500;color:var(--on-dark-strong);line-height:1.5;}
+  .hero-sub{margin-top:18px;max-width:62ch;color:var(--on-dark-soft);font-size:clamp(.95rem,1.6vw,1.02rem);}
+  .stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:28px;}
+  @media (min-width:720px){ .stats{grid-template-columns:repeat(4,minmax(0,1fr));} }
+  .stat{border:1px solid var(--dark-line);background:rgba(255,255,255,.025);border-radius:var(--radius-sm);padding:14px 16px;}
+  .stat b{display:block;font-family:var(--font);font-size:clamp(.95rem,1.7vw,1.25rem);overflow-wrap:anywhere;color:var(--accent);line-height:1.25;}
+  .stat span{display:block;margin-top:4px;font-size:.74rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--on-dark-muted);line-height:1.4;}
+  .btn-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px;}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:0 24px;border-radius:var(--radius-sm);
+    font-family:var(--font);font-weight:700;font-size:1.02rem;text-decoration:none;transition:all .25s cubic-bezier(.4,0,.2,1);
+  }
+  .btn-solid{background:var(--grad-btn);color:var(--on-accent);box-shadow:0 6px 18px -6px var(--accent-glow);}
+  .btn-solid:hover{filter:brightness(1.08);}
+  .btn-ghost{border:1px solid var(--accent-line);color:var(--accent);}
+  .btn-ghost:hover{background:var(--accent-soft);}
+  @media (max-width:520px){ .btn{width:100%;justify-content:flex-start;} }
+
+  /* ---------- chip panel ---------- */
+  .panel{border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow-sm);padding:clamp(18px,3vw,26px);}
+  .panel .eyebrow{color:var(--ink-muted);}
+  .pill-row{display:flex;flex-wrap:wrap;gap:10px 8px;margin-top:14px;}
+  a.pill{text-decoration:none;transition:border-color .2s,background .2s;}
+  a.pill:hover{border-color:var(--accent);background:var(--accent-tint);}
+  .stage:target .stage-card{box-shadow:0 0 0 3px var(--accent-line),var(--shadow-sm);}
+  @media (max-width:640px){.pill-row.stack .pill{display:inline-flex;align-items:center;min-height:40px;}}
+  .pill{font-size:.9rem;font-weight:500;color:var(--accent-ink);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:999px;padding:6px 14px;}
+
+  /* ---------- section heads ---------- */
+  .section-title{font-size:clamp(1.55rem,3.4vw,1.95rem);font-weight:700;color:var(--ink);}
+  .section-title::after{content:"";display:block;width:80px;height:4px;border-radius:4px;background:var(--grad-bar);margin-top:10px;}
+  .section-intro{margin-top:16px;max-width:62ch;color:var(--ink-soft);font-size:1rem;}
+  .sub-title{margin-top:28px;font-size:1rem;font-weight:700;color:var(--ink);}
+
+  /* ---------- stage strip ---------- */
+  .strip:empty{display:none;}
+  .strip{
+    margin-top:24px;background:var(--grad-sidebar);border-radius:var(--radius);padding:18px clamp(12px,3vw,28px);
+    display:flex;align-items:flex-start;gap:6px;overflow-x:auto;scrollbar-width:thin;
+  }
+  .strip-step{flex:1 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;text-decoration:none;color:var(--on-dark-strong);min-width:78px;padding:2px 4px;}
+  .strip-step .n{font-size:.68rem;font-weight:700;color:var(--accent);letter-spacing:.06em;}
+  .strip-step .ico{width:34px;height:34px;border-radius:50%;background:var(--dark-raise);border:1px solid var(--dark-line);display:flex;align-items:center;justify-content:center;transition:all .25s;}
+  .strip-step:hover .ico{border-color:var(--accent);}
+  .strip-step .lbl{font-size:.8rem;font-weight:600;white-space:nowrap;}
+  .strip-dash{flex:0 0 14px;height:2px;background:var(--accent-line);margin-top:40px;border-radius:2px;}
+
+  /* ---------- stage timeline ---------- */
+  .timeline{list-style:none;margin:28px 0 0;padding:0;position:relative;}
+  .stage{position:relative;display:grid;grid-template-columns:44px 1fr;gap:14px;padding-bottom:18px;}
+  .stage::before{content:"";position:absolute;left:21px;top:44px;bottom:0;width:2px;background:linear-gradient(var(--accent),var(--accent-soft));}
+  .stage:last-child::before{display:none;}
+  .stage-num{
+    width:44px;height:44px;border-radius:50%;border:2px solid var(--accent);background:#fff;color:var(--accent-ink);
+    display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.85rem;box-shadow:0 0 0 5px var(--accent-soft);
+  }
+  .stage-card{border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow-sm);padding:clamp(16px,2.6vw,22px);min-width:0;}
+  .stage-head{display:flex;align-items:center;gap:10px;}
+  .stage-head .ico{width:28px;height:28px;flex:0 0 28px;border-radius:8px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;}
+  .stage-head .ico svg{stroke:var(--accent-ink);width:16px;height:16px;}
+  .stage-card h3{font-size:1.12rem;font-weight:700;}
+  .stage-card .why{margin-top:6px;color:var(--ink-soft);font-size:.97rem;}
+  .chip-row{display:flex;flex-wrap:wrap;gap:8px 6px;margin-top:14px;}
+  .chip{font-size:.8rem;font-weight:500;color:var(--chip-ink);background:var(--chip);border:1px solid var(--line);border-radius:6px;padding:4px 10px;}
+  .proven{display:flex;align-items:flex-start;gap:10px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);font-size:.93rem;color:var(--ink-soft);}
+  .proven-tag{flex:0 0 auto;font-size:.66rem;font-weight:700;letter-spacing:.12em;color:var(--accent-ink);background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:999px;padding:3px 9px;margin-top:2px;}
+  .proven a{color:var(--accent-ink);font-weight:600;overflow-wrap:anywhere;}
+  .link-btn{font:inherit;font-weight:600;color:var(--accent-ink);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;}
+
+  /* ---------- popup (keyframe gate) ---------- */
+  .popup{border:0;padding:0;margin:auto;width:min(960px,calc(100% - 24px));max-height:calc(100% - 24px);border-radius:var(--radius-lg);background:var(--grad-sidebar);color:var(--on-dark);box-shadow:var(--shadow-lg);}
+  .popup::backdrop{background:rgba(5,7,4,.72);}
+  .popup-inner{padding:clamp(18px,3.4vw,32px);}
+  .popup-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+  .popup h3{font-size:clamp(1.15rem,2.6vw,1.5rem);font-weight:700;color:var(--on-dark-strong);margin-top:6px;}
+  .popup h3 em{font-style:normal;color:var(--accent);}
+  .popup-close{flex:0 0 44px;width:44px;height:44px;border-radius:50%;background:var(--dark-raise);border:1px solid var(--dark-line);color:var(--on-dark-strong);font:inherit;font-size:1.3rem;cursor:pointer;}
+  .popup-close:hover{border-color:var(--accent);}
+  .popup .eyebrow{color:var(--on-dark-muted);}
+  .popup-lede{margin-top:10px;color:var(--on-dark-body);font-size:.95rem;}
+  .kf-grid{list-style:none;margin:20px 0 0;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;}
+  .kf figure{margin:0;}
+  .kf img{display:block;width:100%;height:auto;aspect-ratio:9/16;object-fit:cover;border-radius:var(--radius-sm);border:2px solid var(--accent);}
+  .kf figcaption{margin-top:6px;font-size:.78rem;font-weight:600;color:var(--on-dark-strong);display:flex;flex-direction:column;gap:2px;}
+  .kf figcaption small{font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);}
+  .kf.off img{border-color:var(--dark-line);opacity:.4;filter:grayscale(1);}
+  .kf.off figcaption small{color:var(--on-dark-muted);}
+  .popup-foot{margin-top:18px;padding-top:14px;border-top:1px dashed var(--dark-line);color:var(--on-dark-body);font-size:.93rem;}
+  .popup-foot b{color:var(--accent);}
+  .popup-doc{width:min(1040px,calc(100% - 24px));height:calc(100dvh - 24px);max-height:none;}
+  .popup-doc[open]{display:flex;flex-direction:column;}
+  .popup-doc .popup-inner{padding-bottom:14px;}
+  .popup-doc iframe{flex:1;width:100%;border:0;background:#fff;border-radius:0 0 var(--radius-lg) var(--radius-lg);}
+  @media (max-width:640px){.link-btn{display:inline-flex;align-items:center;min-height:40px;vertical-align:middle;text-align:left;}}
+  .popup-deck{width:min(1200px,calc(100% - 24px));}
+  .popup-deck iframe{display:block;width:100%;aspect-ratio:16/9;height:auto;border:0;background:#1c2644;border-radius:0 0 var(--radius-lg) var(--radius-lg);}
+  .rotate-hint{display:none;}
+  @media (max-width:640px) and (orientation:portrait){.rotate-hint{display:block;}.deck-help{display:none;}}
+  @media (max-width:640px){.kf-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  .loop-note{margin-top:8px;border:1px dashed var(--accent-line);background:var(--accent-tint);border-radius:var(--radius-sm);padding:14px 16px;color:var(--accent-ink);font-weight:600;font-size:.95rem;}
+
+  /* ---------- experience (work history) ---------- */
+  .jobs{list-style:none;margin:26px 0 0;padding:0;position:relative;}
+  .jobs::before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:var(--line);}
+  .job{position:relative;padding:0 0 22px 28px;}
+  .job:last-child{padding-bottom:0;}
+  .job::before{content:"";position:absolute;left:0;top:7px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--accent);box-shadow:0 0 0 4px var(--accent-soft);}
+  .job:first-child::before{background:var(--accent);}
+  .job-when{font-size:.78rem;font-weight:700;letter-spacing:.04em;color:var(--accent-ink);}
+  .job h3{margin-top:4px;font-size:1.05rem;font-weight:700;}
+  .job-org{margin-top:2px;font-size:.92rem;color:var(--ink-soft);}
+  .job ul{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;}
+  .job li{position:relative;padding-left:16px;font-size:.92rem;color:var(--ink-soft);}
+  .job li::before{content:"›";position:absolute;left:2px;top:0;color:var(--accent-ink);font-weight:700;}
+  @media (min-width:720px){
+    .jobs::before{left:155px;}
+    .job{display:grid;grid-template-columns:130px 1fr;gap:0 48px;padding-left:0;}
+    .job::before{left:150px;}
+    .job-when{text-align:right;padding-top:3px;}
+    .job h3{margin-top:0;}
+  }
+
+  /* ---------- skills grid ---------- */
+  .skills{display:grid;grid-template-columns:1fr;gap:18px;margin-top:24px;}
+  @media (min-width:760px){ .skills{grid-template-columns:repeat(2,minmax(0,1fr));} }
+  .skill{position:relative;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);box-shadow:var(--shadow-sm);padding:24px 22px 22px;overflow:hidden;}
+  .skill::before{content:"";position:absolute;left:0;right:0;top:0;height:4px;background:var(--bar,var(--grad-bar));}
+  .skill:nth-child(6n+1){--bar:linear-gradient(90deg,var(--accent-ink),var(--accent));--chip-line:var(--accent-ink);}
+  .skill:nth-child(6n+2){--bar:linear-gradient(90deg,var(--accent-2),var(--accent));--chip-line:var(--accent-2);}
+  .skill:nth-child(6n+3){--bar:linear-gradient(90deg,var(--accent),var(--accent-2));--chip-line:var(--accent);}
+  .skill:nth-child(6n+4){--bar:linear-gradient(90deg,var(--accent),var(--accent-3));--chip-line:var(--accent-3);}
+  .skill:nth-child(6n+5){--bar:linear-gradient(90deg,var(--accent-3),var(--accent));--chip-line:var(--accent);}
+  .skill:nth-child(6n+6){--bar:linear-gradient(90deg,var(--carbon),var(--accent));--chip-line:var(--carbon);}
+  .skill-head{display:flex;align-items:center;gap:12px;}
+  .skill-head .ico{width:40px;height:40px;flex:0 0 40px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
+  .skill-head .ico svg{stroke:var(--accent-ink);width:20px;height:20px;}
+  .skill h3{font-size:1.18rem;font-weight:700;}
+  .skill p{margin-top:14px;color:var(--ink-soft);font-size:.96rem;}
+  .skill .chip-row{margin-top:16px;}
+  .skill .chip{font-weight:600;border-bottom:2px solid var(--chip-line,var(--accent));}
+
+  /* ---------- outcomes + education rows ---------- */
+  .outcomes{display:flex;flex-direction:column;gap:12px;margin-top:24px;}
+  .outcome{display:grid;grid-template-columns:1fr;gap:10px;align-items:start;border:1px solid var(--line);border-left:3px solid var(--line);border-radius:var(--radius-sm);padding:14px 16px;transition:border-color .25s;}
+  .outcome:hover{border-left-color:var(--accent);}
+  @media (min-width:640px){ .outcome{grid-template-columns:120px 1fr;gap:18px;} }
+  .outcome-label{align-self:start;justify-self:start;font-weight:700;color:var(--ink);line-height:1.5;background:linear-gradient(90deg,var(--surface-2),transparent);border-radius:6px;padding:4px 10px;}
+  .outcome p{color:var(--ink-soft);font-size:.98rem;}
+  .outcome p b{color:var(--ink);font-weight:700;}
+
+  /* ---------- contact + footer ---------- */
+  .contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;margin-top:22px;}
+  .contact-link{
+    display:flex;flex-direction:column;justify-content:center;min-height:64px;padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius-sm);
+    text-decoration:none;color:var(--ink);background:var(--surface);transition:all .25s;overflow-wrap:anywhere;
+  }
+  a.contact-link:hover{border-color:var(--accent);box-shadow:var(--shadow-sm);}
+  .contact-link .eyebrow{color:var(--ink-muted);font-size:.66rem;}
+  .contact-link b{margin-top:2px;font-weight:600;font-size:.97rem;}
+  footer.site{text-align:center;color:var(--ink-soft);font-size:.85rem;padding:24px var(--pad) 32px;}
+  .print-btn{display:inline-flex;align-items:center;min-height:44px;margin-left:10px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink-soft);font:inherit;font-size:.8rem;cursor:pointer;}
+  .print-btn:hover{border-color:var(--accent);color:var(--ink);}
+
+  /* ---------- print / Save as PDF: single column, black on white ---------- */
+  @media print{
+    @page{margin:14mm 12mm;}
+    :root{--accent-ink:#1a1a1a;}
+    *{box-shadow:none !important;text-shadow:none !important;}
+    body{background:#fff;color:#111;font-size:10.5pt;line-height:1.45;}
+    header.site,.btn-row,.strip,.print-btn,.side-social,.loop-note,.hero::before,.section-title::after{display:none !important;}
+    .shell{display:block !important;}
+    .main{padding:0 !important;min-height:0 !important;}
+    .main-inner{max-width:none;}
+    .main-inner > section + section{margin-top:16pt;}
+    .sidebar{background:none !important;color:#111;padding:0 0 10pt;text-align:left;display:grid;grid-template-columns:auto 1fr;gap:4pt 16pt;align-items:start;border-bottom:1.5pt solid #111;margin-bottom:12pt;}
+    .sidebar-inner{display:contents;}
+    .portrait{grid-row:span 4;width:70pt;margin:0;border:0;background:none;}
+    .side-name,.side-role{color:#111;}
+    .side-role{border:0;padding:0;margin:0;}
+    .side-bio{color:#333;margin:0;}
+    .side-tags{justify-content:flex-start;margin:2pt 0 0;}
+    .side-tag,.pill,.proven-tag,.hero-pill{color:#111 !important;background:none !important;border-color:#999 !important;}
+    .hero{background:none !important;color:#111;border:0;padding:0;border-radius:0;}
+    .hero h1,.hero-pill{display:none;}
+    .hero-lede{color:#111;margin-top:0;font-size:12pt;}
+    .hero-sub{color:#333;}
+    .stats{grid-template-columns:repeat(4,1fr);gap:6pt;margin-top:10pt;}
+    .stat{border-color:#bbb;background:none;padding:6pt 8pt;}
+    .stat b{color:#111;}
+    .stat span{color:#555;}
+    .panel,.stage-card,.skill,.outcome,.contact-link{border-color:#ccc !important;background:none !important;}
+    .stage::before,.stage-num,.skill::before{display:none;}
+    .timeline{display:grid;grid-template-columns:1fr 1fr;gap:8pt;margin-top:10pt;}
+    .stage{display:block;padding:0;}
+    .stage-card{height:100%;border-left-width:1px !important;}
+    .skills{grid-template-columns:1fr 1fr;gap:8pt;}
+    .chip{background:none;border-color:#bbb;color:#222;}
+    .stage-card,.skill,.outcome,.job,.contact-link,.panel{break-inside:avoid;}
+    .section-title{break-after:avoid;}
+    .ico svg{stroke:#333 !important;}
+    footer.site{padding:10pt 0 0;color:#555;}
+  }
+
+  /* theme-fallbacks:start */
+  /* Plain colours for browsers without color-mix() / relative oklch(). Generated by
+     scripts/theme_fallbacks.py for the current theme — re-run it after changing --accent. */
+  @supports not (color: oklch(from red l c h)){
+    :root{--accent-ink:#0a5920;--accent-2:#1eb783;--accent-3:#82e149;--accent-deep:#1da844;--accent-soft:rgba(41,219,91,0.12);--accent-tint:rgba(41,219,91,0.08);--accent-line:rgba(41,219,91,0.45);--accent-glow:rgba(41,219,91,0.55);--dark-raise:#263023;--dark-line:#384733;--dark-tint:#1b3219;}
+  }
+  /* theme-fallbacks:end */
+</style>
+</head>
+<body>
+
+<!-- Reusable icons for the social / contact buttons -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-mail" viewBox="0 0 24 24"><path d="M2 5.5A1.5 1.5 0 0 1 3.5 4h17A1.5 1.5 0 0 1 22 5.5v13a1.5 1.5 0 0 1-1.5 1.5h-17A1.5 1.5 0 0 1 2 18.5v-13Zm2 .9V18h16V6.4l-8 6.1-8-6.1ZM5.6 6l6.4 4.9L18.4 6H5.6Z"/></symbol>
+  <symbol id="i-in" viewBox="0 0 24 24"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"/></symbol>
+  <symbol id="i-gh" viewBox="0 0 24 24"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.4-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18.9 2H22l-7.6 8.7L23 22h-6.8l-5.3-6.9L4.8 22H1.7l8.1-9.3L1 2h7l4.8 6.3L18.9 2Zm-1.2 18h1.7L7.4 3.9H5.6L17.7 20Z"/></symbol>
+  <symbol id="i-web" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.95a15.6 15.6 0 0 0-1.38-3.56A8 8 0 0 1 18.93 8ZM12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96ZM4.26 14a8 8 0 0 1 0-4h3.38a16.5 16.5 0 0 0 0 4H4.26Zm.81 2h2.95c.32 1.25.78 2.45 1.38 3.56A8 8 0 0 1 5.07 16Zm2.95-8H5.07a8 8 0 0 1 4.33-3.56A15.6 15.6 0 0 0 8.02 8ZM12 19.96A14 14 0 0 1 10.09 16h3.82A14 14 0 0 1 12 19.96ZM14.34 14H9.66a14.7 14.7 0 0 1 0-4h4.68a14.7 14.7 0 0 1 0 4Zm.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8 8 0 0 1-4.33 3.56ZM16.36 14a16.5 16.5 0 0 0 0-4h3.38a8 8 0 0 1 0 4h-3.38Z"/></symbol>
+</svg>
+
+<header class="site">
+  <nav class="nav" aria-label="Primary">
+    <a class="brand" href="#top">Jonah Wang</a>
+    <ul class="nav-links">
+      <li><a href="#top" class="active">Home</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#experience">Experience</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <button class="menu-btn" id="menuBtn" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu"><span></span></button>
+  </nav>
+  <div id="mobile-menu">
+    <a href="#top">Home</a>
+    <a href="#projects">Projects</a>
+    <a href="#experience">Experience</a>
+    <a href="#skills">Skills</a>
+    <a href="#education">Education</a>
+    <a href="#contact">Contact</a>
+  </div>
+</header>
+
+<div class="shell" id="top">
+
+  <!-- ===== Sidebar: portrait, name, role, short bio, focus tags, social ===== -->
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+      <div class="portrait">
+        <img src="assets/images/portrait.jpg" alt="Jonah Wang" width="400" height="600">
+      </div>
+      <h2 class="side-name">Jonah Wang</h2>
+      <p class="side-role">AI Solution Architect</p>
+      <p class="side-bio">Pre-sales solution architect turning AI capabilities into business value for
+        enterprises and AI startups.</p>
+      <div class="side-tags">
+        <span class="side-tag">Agentic AI</span>
+        <span class="side-tag">Cloud Architecture</span>
+        <span class="side-tag">Pre-Sales</span>
+        <span class="side-tag">Product Management</span>
+      </div>
+      <div class="side-social">
+        <a class="social-btn" href="mailto:wsf.jonah@hotmail.com"><svg aria-hidden="true"><use href="#i-mail"/></svg>Email</a>
+        <a class="social-btn" href="https://www.linkedin.com/in/wang-shufan-ab24312b/" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-in"/></svg>LinkedIn</a>
+        <a class="social-btn" href="https://github.com/wsfjonah1982" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-gh"/></svg>GitHub</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== Main column ===== -->
+  <main class="main">
+    <div class="main-inner">
+
+      <!-- Hero card -->
+      <section class="hero" aria-labelledby="hero-name">
+        <span class="hero-pill eyebrow">AI Solution Architect · Agentic AI</span>
+        <h1 id="hero-name">Jonah Wang</h1>
+        <p class="hero-lede">Translating AI capabilities into real business value through AI-driven
+          workflow automation.</p>
+        <p class="hero-sub">AI Solution Architect at BytePlus, designing agentic AI solutions for enterprises and
+          AI startups. Before that, five years at Alibaba Cloud and two decades of architecture work
+          across smart city, IoT, logistics and social platforms.</p>
+        <div class="stats">
+          <div class="stat"><b>20 yrs</b><span>Architecture &amp; delivery</span></div>
+          <div class="stat"><b>3 yrs</b><span>GenAI solutioning &amp; project delivery</span></div>
+          <div class="stat"><b>100M</b><span>Daily tokens in agentic AI apps</span></div>
+          <div class="stat"><b>16</b><span>AI dev projects in progress</span></div>
+        </div>
+        <div class="btn-row">
+          <a class="btn btn-solid" href="#contact">Get in touch</a>
+          <a class="btn btn-ghost" href="#projects">See projects</a>
+        </div>
+      </section>
+
+      <!-- Platforms / stack chips -->
+      <section class="panel" aria-label="Platforms and stack">
+        <span class="eyebrow">Platforms &amp; Stack</span>
+        <div class="pill-row stack">
+          <a class="pill" href="#project-video">Seedance</a>
+          <a class="pill" href="#project-video">Seedream</a>
+          <a class="pill" href="#project-video">Seed Audio</a>
+          <a class="pill" href="#project-video">DeepSeek</a>
+          <a class="pill" href="#project-taas">Claude Code</a>
+          <a class="pill" href="#project-taas">Codex</a>
+          <a class="pill" href="#project-taas">TRAE</a>
+          <a class="pill" href="#project-taas">OpenClaw</a>
+          <span class="pill">Qwen</span>
+          <span class="pill">Qoder</span>
+          <span class="pill">BytePlus</span>
+          <span class="pill">Alibaba Cloud</span>
+          <span class="pill">AWS</span>
+          <span class="pill">Azure</span>
+          <span class="pill">GCP</span>
+        </div>
+      </section>
+
+      <!-- Projects: one card per project, newest first. -->
+      <section id="projects" aria-labelledby="projects-title">
+        <h2 class="section-title" id="projects-title">Projects</h2>
+        <p class="section-intro">Agentic AI is fundamentally reshaping project delivery, turning AI from a passive content creator into an active, autonomous workforce.</p>
+
+        <nav class="strip" aria-label="Projects"></nav>
+
+        <ol class="timeline">
+          <li class="stage" data-short="Agentic AI">
+            <span class="stage-num"></span>
+            <div class="stage-card">
+              <div class="stage-head"><span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="4" cy="6" r="2"/><circle cx="20" cy="6" r="2"/><circle cx="4" cy="18" r="2"/><circle cx="20" cy="18" r="2"/><path d="M6 7l4 3M18 7l-4 3M6 17l4-3M18 17l-4-3"/></svg></span><h3>Agentic AI &amp; Data Agents</h3></div>
+              <p class="why">BytePlus · Agentic AI and data-agent solutions that automate enterprise workflows and data analysis.</p>
+              <div class="chip-row"><span class="chip">BytePlus Agentic AI</span><span class="chip">ModelArk</span><span class="chip">MaaS</span><span class="chip">Managed Agent</span></div>
+              <div class="proven"><span class="proven-tag">PROVEN</span><span>Supported Indonesian AI startups onboarding to BytePlus MaaS and Managed Agent, accelerating their AI product development.</span></div>
+            </div>
+          </li>
+          <li class="stage" id="project-video" data-short="Video AI">
+            <span class="stage-num"></span>
+            <div class="stage-card">
+              <div class="stage-head"><span class="ico"><svg viewBox="0 0 24 24"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 10 5-3v10l-5-3"/></svg></span><h3>AI Video Generation</h3></div>
+              <p class="why">BytePlus · AI video generation solutions for media and e-commerce companies across Southeast Asia.</p>
+              <div class="chip-row"><span class="chip">Seedance 2.5</span><span class="chip">Seedream 5.0</span></div>
+              <div class="proven"><span class="proven-tag">PROVEN</span><span>Delivered Seedance to SEA media and e-commerce companies, automating their video content production pipelines. <button class="link-btn" type="button" data-open="drama-cost">See the AI video workflow and cost analysis</button>.</span></div>
+            </div>
+          </li>
+          <li class="stage" id="project-taas" data-short="TaaS">
+            <span class="stage-num"></span>
+            <div class="stage-card">
+              <div class="stage-head"><span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m10 13 4 2.5-4 2.5z"/></svg></span><h3>Task as a Service · Brand Ads Footage</h3></div>
+              <p class="why">BytePlus · A daily agentic job that researches timely brand ideas, scripts them, previews keyframes and turns the approved ones into short videos for Reels, TikTok and Shorts.</p>
+              <div class="chip-row"><span class="chip">Task as a Service</span><span class="chip">Seedream 5.0</span><span class="chip">Seedance 2.5</span><span class="chip">Managed Agent</span></div>
+              <div class="proven"><span class="proven-tag">BUILT</span><span>Developed as a SKILL with Claude Code and Codex and deployed as a daily creative designer. Customer approval gates every video; feedback refines tomorrow&#8217;s ideas. <button class="link-btn" type="button" data-open="kf-gate">See the Daily Creative Designer</button> and <button class="link-btn" type="button" data-open="taas-results">the results</button>.</span></div>
+            </div>
+          </li>
+          <li class="stage" data-short="Creative Ads">
+            <span class="stage-num"></span>
+            <div class="stage-card">
+              <div class="stage-head"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h3l5 4V6L7 10H4a1 1 0 0 0-1 1Z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg></span><h3>AI-driven Creative Scale-up</h3></div>
+              <p class="why">BytePlus · Scaling ad creative for e-commerce and advertising with SOTA image, video and audio models.</p>
+              <div class="chip-row"><span class="chip">Seedream 5.0</span><span class="chip">Seedance 2.5</span><span class="chip">Lumina</span><span class="chip">Dramagic</span></div>
+              <div class="proven"><span class="proven-tag">BUILT</span><span>From UGC to AIGC: layered image generation moves any product or prop without reshooting, and Seedance 2.5 produces in-stream branding films for brand storytelling. <button class="link-btn" type="button" data-open="ugc-aigc">See the demos</button>.</span></div>
+            </div>
+          </li>
+          <li class="stage" data-short="Edu Video">
+            <span class="stage-num"></span>
+            <div class="stage-card">
+              <div class="stage-head"><span class="ico"><svg viewBox="0 0 24 24"><path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12v5c3 2 9 2 12 0v-5"/></svg></span><h3>Education Short-Video Agent</h3></div>
+              <p class="why">BytePlus · An early-childhood education agent that turns a brief and reference images into a finished short video in one pass, then scores its quality.</p>
+              <div class="chip-row"><span class="chip">Multi-agent</span><span class="chip">Seedream 5.0</span><span class="chip">Seedance 2.5</span><span class="chip">Compliance scoring</span></div>
+              <div class="proven"><span class="proven-tag">BUILT</span><span>Three sub-agents: script writer, reference-image designer and video evaluator, which scores each video against a weighted child-education compliance matrix. Presented in the <a href="https://jonah-files.tos-ap-southeast-1.bytepluses.com/site/manual/baby-please-deck/index.html" target="_blank" rel="noopener">“Please” case deck</a>.</span></div>
+            </div>
+          </li>
+          <li class="stage" data-short="3D Studio">
+            <span class="stage-num"></span>
+            <div class="stage-card">
+              <div class="stage-head"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/></svg></span><h3>3D Model Studio</h3></div>
+              <p class="why">BytePlus · Converts product images into 3D models for a consistent view of the design from every angle, with an AI image editor powered by Seedream 5.0.</p>
+              <div class="chip-row"><span class="chip">Seed3D</span><span class="chip">Seedream 5.0</span></div>
+              <div class="proven"><span class="proven-tag">BUILT</span><span>Per-project galleries fed by uploads, AI generation and an annotate-and-regenerate editor; selected images go to Ark&#8217;s Seed3D API and the model previews in the browser.</span></div>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Work history, most recent first. -->
+      <section id="experience" aria-labelledby="exp-title">
+        <h2 class="section-title" id="exp-title">Experience</h2>
+        <ol class="jobs">
+          <li class="job">
+            <div class="job-when">2026 – Now</div>
+            <div>
+              <h3>AI Solution Architect</h3>
+              <p class="job-org">BytePlus Pte Ltd</p>
+              <ul><li>Drive pre-sales solutioning of the BytePlus AI suite (Seedance, VLM and OpenClaw) for enterprise customers</li><li>Design agentic AI automation solutions across industries for business workflows, data analysis and AIGC</li></ul>
+            </div>
+          </li>
+          <li class="job">
+            <div class="job-when">2021 – 2026</div>
+            <div>
+              <h3>Pre-Sales Cloud Solution Architect · Ecosystem Solution Architect</h3>
+              <p class="job-org">Alibaba Cloud</p>
+              <ul><li>Provided requirement analysis, solution design and technical support with the local BD team to hit SEA revenue targets</li><li>Designed and implemented AI applications with cloud ISVs and AI partners, building joint solutions for Fintech, New Retail, Smart Living and more</li></ul>
+            </div>
+          </li>
+          <li class="job">
+            <div class="job-when">2019 – 2021</div>
+            <div>
+              <h3>Solution Architect</h3>
+              <p class="job-org">Sopra Steria Asia</p>
+              <ul><li>Provided consultancy and proposals for Smart City pre-sales bids</li><li>Architected e-Governance and digitalisation projects on GCC (AWS, Azure, Google Cloud) and on-premise</li></ul>
+            </div>
+          </li>
+          <li class="job">
+            <div class="job-when">2017 – 2019</div>
+            <div>
+              <h3>IoT Solution Consultant &amp; Product Manager</h3>
+              <p class="job-org">Shanghai Bangxin Technology</p>
+              <ul><li>Extended the Smart Water solution to a SaaS platform serving water networks in 4 Chinese cities at once</li><li>Turned problem statements from sales into IoT solutions and rapid-turnaround POCs</li></ul>
+            </div>
+          </li>
+          <li class="job">
+            <div class="job-when">2016 – 2017</div>
+            <div>
+              <h3>Technical Advisor</h3>
+              <p class="job-org">FedEx Express Supply Chain</p>
+              <ul><li>Owned system architecture and technical design for the APAC Supply Chain Solution re-design</li><li>Managed outsourced delivery with Virtusa Corporation and Bridge Pte Ltd</li></ul>
+            </div>
+          </li>
+          <li class="job">
+            <div class="job-when">2013 – 2016</div>
+            <div>
+              <h3>Solution Architect · Data Architect · Scrum Master</h3>
+              <p class="job-org">Visenti Pte Ltd</p>
+              <ul><li>Redesigned the WaterWise backend API and data pipeline with a plugin framework for per-customer customisation</li><li>Led a 7-person Agile/XP team and managed the AWS infrastructure</li></ul>
+            </div>
+          </li>
+          <li class="job">
+            <div class="job-when">2011 – 2013</div>
+            <div>
+              <h3>Solution Architect &amp; Product Manager</h3>
+              <p class="job-org">Sitetalk.com</p>
+              <ul><li>Owned the full application lifecycle: vendors, requirements, functional design and architecture</li><li>Brought messaging, chat and shopping in-house on a microservice framework</li></ul>
+            </div>
+          </li>
+          <li class="job">
+            <div class="job-when">2005 – 2011</div>
+            <div>
+              <h3>Dev Lead &amp; Software Architect</h3>
+              <p class="job-org">FedEx Express</p>
+              <ul><li>Designed a logistics SaaS architecture on a unified framework serving multiple customers at once</li><li>Led development, QC and code review for express shipping and APAC logistics</li></ul>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- Skills -->
+      <section id="skills" aria-labelledby="skills-title">
+        <h2 class="section-title" id="skills-title">Skills</h2>
+        <div class="skills">
+          <article class="skill">
+            <div class="skill-head"><span class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3"/></svg></span><h3>Solution Architecture</h3></div>
+            <p>Pre-sales and delivery architecture from agentic AI and MaaS down to cloud, microservices and data platforms.</p>
+            <div class="chip-row"><span class="chip">Agentic AI &amp; MaaS</span><span class="chip">Cloud &amp; PaaS</span><span class="chip">RESTful API</span><span class="chip">Microservices</span><span class="chip">Data Warehouse</span><span class="chip">NoSQL</span></div>
+          </article>
+          <article class="skill">
+            <div class="skill-head"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/></svg></span><h3>Product Management</h3></div>
+            <p>Product ownership across logistics, social, IoT and big data, from requirement analysis to rapid-turnaround POCs.</p>
+            <div class="chip-row"><span class="chip">Logistics &amp; Supply Chain</span><span class="chip">Social &amp; Mobile Apps</span><span class="chip">Internet of Things</span><span class="chip">Big Data</span></div>
+          </article>
+          <article class="skill">
+            <div class="skill-head"><span class="ico"><svg viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></span><h3>Project Management</h3></div>
+            <p>Leading teams of up to 20 people, running Agile/XP as Scrum Master, and managing outsourced vendors through delivery.</p>
+            <div class="chip-row"><span class="chip">Agile / Scrum</span><span class="chip">Vendor Management</span><span class="chip">Business Analysis</span><span class="chip">New Product Development</span></div>
+          </article>
+          <article class="skill">
+            <div class="skill-head"><span class="ico"><svg viewBox="0 0 24 24"><path d="M18 10h-1.3A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10Z"/></svg></span><h3>Cloud &amp; Data Platforms</h3></div>
+            <p>Hands-on with the platforms behind the work: public, private and government cloud, streaming and search.</p>
+            <div class="chip-row"><span class="chip">Alibaba Cloud</span><span class="chip">AWS</span><span class="chip">Azure</span><span class="chip">MongoDB</span><span class="chip">Elasticsearch</span><span class="chip">Apache Storm</span></div>
+          </article>
+        </div>
+      </section>
+
+      <!-- Education & certifications, newest first. -->
+      <section id="education" aria-labelledby="edu-title">
+        <h2 class="section-title" id="edu-title">Education &amp; Certifications</h2>
+        <div class="outcomes">
+          <div class="outcome"><span class="outcome-label">2022</span><p><b>Alibaba Cloud Expert, Cloud Computing</b> — Alibaba Cloud</p></div>
+          <div class="outcome"><span class="outcome-label">2021</span><p><b>AWS Certified Solutions Architect, Associate</b> — Amazon Web Services</p></div>
+          <div class="outcome"><span class="outcome-label">2015</span><p><b>NICF, Architecting Software Solutions</b> — NUS Institute of Systems Science</p></div>
+          <div class="outcome"><span class="outcome-label">2009</span><p><b>Core Spring, Spring Framework Training</b> — SpringSource</p></div>
+          <div class="outcome"><span class="outcome-label">2009</span><p><b>M.Sc. Industrial &amp; Systems Engineering</b> — National University of Singapore (Project Management, Logistics &amp; Quality Control)</p></div>
+          <div class="outcome"><span class="outcome-label">2005</span><p><b>B.Comp. Computer Science, 2nd Upper Class Honours</b> — National University of Singapore</p></div>
+        </div>
+        <div class="panel" style="margin-top:18px">
+          <span class="eyebrow">Awards</span>
+          <div class="pill-row">
+            <span class="pill">FedEx Award of Excellence · 2009</span>
+            <span class="pill">Dean's List, NUS School of Computing · 2002/2003</span>
+            <span class="pill">Government-Link Companies Scholarship, MOE · 2001–2005</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Contact: real channels only. -->
+      <section id="contact" aria-labelledby="contact-title">
+        <h2 class="section-title" id="contact-title">Contact</h2>
+        <p class="section-intro" data-sample="contact intro line">Open to conversations about agentic AI and AI-driven workflow automation.</p>
+        <div class="contact-grid">
+          <a class="contact-link" href="mailto:wsf.jonah@hotmail.com"><span class="eyebrow">Email</span><b>wsf.jonah@hotmail.com</b></a>
+          <a class="contact-link" href="https://www.linkedin.com/in/wang-shufan-ab24312b/" target="_blank" rel="noopener"><span class="eyebrow">LinkedIn</span><b>linkedin.com/in/wang-shufan-ab24312b</b></a>
+          <a class="contact-link" href="https://github.com/wsfjonah1982" target="_blank" rel="noopener"><span class="eyebrow">GitHub</span><b>github.com/wsfjonah1982</b></a>
+          <div class="contact-link"><span class="eyebrow">Based in</span><b>Singapore</b></div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Popup: Brand Ads Footage keyframe gate (slide 06 of the deck). -->
+<dialog class="popup" id="kf-gate" aria-labelledby="kf-gate-title">
+  <div class="popup-inner">
+    <div class="popup-head">
+      <div>
+        <span class="eyebrow">Task as a Service · Brand Ads Footage · Seedream 5.0 · Seedance 2.5</span>
+        <h3 id="kf-gate-title">Daily <em>Creative Designer</em></h3>
+      </div>
+      <button class="popup-close" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+    <p class="popup-lede">Approve a still before paying for video: each keyframe previews its video and goes to the customer for approval and remarks before anything is rendered.</p>
+    <ul class="kf-grid">
+      <li class="kf"><figure><img src="assets/brand-footage/kf-01.jpg" alt="Keyframe 01: Ghost" loading="lazy" width="360" height="640"><figcaption>01 · Ghost<small>Approved</small></figcaption></figure></li>
+      <li class="kf"><figure><img src="assets/brand-footage/kf-02.jpg" alt="Keyframe 02: Suspect" loading="lazy" width="360" height="640"><figcaption>02 · Suspect<small>Approved</small></figcaption></figure></li>
+      <li class="kf off"><figure><img src="assets/brand-footage/kf-03.jpg" alt="Keyframe 03: Leaves" loading="lazy" width="360" height="640"><figcaption>03 · Leaves<small>Passed over</small></figcaption></figure></li>
+      <li class="kf"><figure><img src="assets/brand-footage/kf-04.jpg" alt="Keyframe 04: Burrito" loading="lazy" width="360" height="640"><figcaption>04 · Burrito<small>Approved</small></figcaption></figure></li>
+      <li class="kf off"><figure><img src="assets/brand-footage/kf-05.jpg" alt="Keyframe 05: Photo Day" loading="lazy" width="360" height="640"><figcaption>05 · Photo Day<small>Passed over</small></figcaption></figure></li>
+      <li class="kf"><figure><img src="assets/brand-footage/kf-06.jpg" alt="Keyframe 06: Kitten" loading="lazy" width="360" height="640"><figcaption>06 · Kitten<small>Approved</small></figcaption></figure></li>
+      <li class="kf"><figure><img src="assets/brand-footage/kf-07.jpg" alt="Keyframe 07: Sprint" loading="lazy" width="360" height="640"><figcaption>07 · Sprint<small>Approved</small></figcaption></figure></li>
+      <li class="kf"><figure><img src="assets/brand-footage/kf-08.jpg" alt="Keyframe 08: Bedtime" loading="lazy" width="360" height="640"><figcaption>08 · Bedtime<small>Approved</small></figcaption></figure></li>
+      <li class="kf off"><figure><img src="assets/brand-footage/kf-09.jpg" alt="Keyframe 09: Shopping" loading="lazy" width="360" height="640"><figcaption>09 · Shopping<small>Passed over</small></figcaption></figure></li>
+      <li class="kf off"><figure><img src="assets/brand-footage/kf-10.jpg" alt="Keyframe 10: First Steps" loading="lazy" width="360" height="640"><figcaption>10 · First Steps<small>Passed over</small></figcaption></figure></li>
+    </ul>
+    <p class="popup-foot"><b>6 approved</b> went on to Seedance; <b>4 passed over</b> never cost a video render.</p>
+  </div>
+</dialog>
+
+<!-- Popup: Brand Ads Footage objective and approved clips (slides 03, 09 and 10 of the deck, loaded on first open). -->
+<dialog class="popup popup-deck" id="taas-results" aria-labelledby="taas-results-title">
+  <div class="popup-inner">
+    <div class="popup-head">
+      <div>
+        <span class="eyebrow">Task as a Service · Seedream 5.0 · Seedance 2.5</span>
+        <h3 id="taas-results-title">Brand Ads Footage <em>Results</em></h3>
+      </div>
+      <button class="popup-close" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+    <p class="popup-lede deck-help">Three slides: the objective, then six approved clips with their auto-scores. Use the dots or arrow keys to switch.</p>
+    <p class="popup-lede rotate-hint">Turn your phone sideways for a larger view.</p>
+  </div>
+  <iframe data-src="taas-footage/index.html" title="Brand Ads Footage: objective and approved clips"></iframe>
+</dialog>
+
+<!-- Popup: From UGC to AIGC (slides 07 and 10 of the Creative Scale-up deck, loaded on first open). -->
+<dialog class="popup popup-deck" id="ugc-aigc" aria-labelledby="ugc-aigc-title">
+  <div class="popup-inner">
+    <div class="popup-head">
+      <div>
+        <span class="eyebrow">AI-driven Creative Scale-up · Seedream 5.0 · Seedance 2.5</span>
+        <h3 id="ugc-aigc-title">From UGC <em>to AIGC</em></h3>
+      </div>
+      <button class="popup-close" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+    <p class="popup-lede deck-help">Two slides: drag, resize or rotate the layers on the first, and play the branding films on the second. Use the dots or arrow keys to switch.</p>
+    <p class="popup-lede rotate-hint">Turn your phone sideways for a larger view.</p>
+  </div>
+  <iframe data-src="ugc-to-aigc/index.html" title="From UGC to AIGC: layered generation and in-stream branding ads"></iframe>
+</dialog>
+
+<!-- Popup: AI drama cost review (four sections of the full report, loaded on first open). -->
+<dialog class="popup popup-doc" id="drama-cost" aria-labelledby="drama-cost-title">
+  <div class="popup-inner">
+    <div class="popup-head">
+      <div>
+        <span class="eyebrow">AI Video Generation · Seedance 2.5 · Seedream 5.0</span>
+        <h3 id="drama-cost-title">AI Video Workflow <em>and Cost Analysis</em></h3>
+      </div>
+      <button class="popup-close" type="button" data-close aria-label="Close">&times;</button>
+    </div>
+  </div>
+  <iframe data-src="drama-cost/index.html" title="AI video workflow and cost analysis: workflow, sensitivity, calculator and best practice"></iframe>
+</dialog>
+
+<footer class="site">© 2026 Jonah Wang<button class="print-btn" type="button" onclick="window.print()">Save as PDF</button></footer>
+
+<script>
+  // Number the stage cards and build the icon strip from them.
+  (function(){
+    var stages = document.querySelectorAll('.timeline .stage');
+    var strip = document.querySelector('.strip');
+    stages.forEach(function(li, i){
+      var n = String(i + 1).padStart(2, '0');
+      if (!li.id) li.id = 'stage-' + (i + 1);
+      var num = li.querySelector('.stage-num');
+      if (num) num.textContent = n;
+      if (!strip) return;
+      if (i > 0) {
+        var dash = document.createElement('span');
+        dash.className = 'strip-dash'; dash.setAttribute('aria-hidden', 'true');
+        strip.appendChild(dash);
+      }
+      var a = document.createElement('a');
+      a.className = 'strip-step'; a.href = '#' + li.id;
+      var icon = li.querySelector('.stage-head .ico svg');
+      var h3 = li.querySelector('h3');
+      a.innerHTML = '<span class="n">' + n + '</span><span class="ico"></span><span class="lbl"></span>';
+      if (icon) a.querySelector('.ico').appendChild(icon.cloneNode(true));
+      a.querySelector('.lbl').textContent = li.dataset.short || (h3 ? h3.textContent : n);
+      strip.appendChild(a);
+    });
+  })();
+
+  // Popups: [data-open] opens the matching <dialog>; the close button or a backdrop click closes it.
+  (function(){
+    document.querySelectorAll('[data-open]').forEach(function(b){
+      var dlg = document.getElementById(b.dataset.open);
+      if (!dlg || !dlg.showModal) return;
+      b.addEventListener('click', function(){
+        var fr = dlg.querySelector('iframe[data-src]:not([src])');
+        if (fr) {
+          fr.src = fr.dataset.src;  // load embedded pages only when first opened
+          // Esc inside the embedded page should still close the popup (same-origin only)
+          fr.addEventListener('load', function(){
+            try { fr.contentWindow.addEventListener('keydown', function(e){ if (e.key === 'Escape') dlg.close(); }); } catch (err) {}
+          });
+        }
+        dlg.showModal();
+      });
+      dlg.addEventListener('click', function(e){ if (e.target === dlg || e.target.closest('[data-close]')) dlg.close(); });
+      // Closing the popup stops any video still playing in the embedded page
+      dlg.addEventListener('close', function(){
+        var fr = dlg.querySelector('iframe[src]');
+        try { fr && fr.contentDocument.querySelectorAll('video').forEach(function(v){ v.pause(); }); } catch (err) {}
+      });
+    });
+  })();
+
+  (function(){
+    var btn = document.getElementById('menuBtn');
+    var menu = document.getElementById('mobile-menu');
+    btn.addEventListener('click', function(){
+      var open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    });
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', function(){
+        menu.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    });
+  })();
+</script>
+</body>
+</html>

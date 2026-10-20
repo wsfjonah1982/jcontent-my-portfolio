@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Video Workflow and Cost Analysis</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: single reading column (~920px) — headline strip, success-rate callout, numbered pipeline, ledger tables, live calculator */
+:root {
+  --bg: #f5f7fa;
+  --surface: #ffffff;
+  --ink: #16202e;
+  --muted: #5b6676;
+  --line: #dde3eb;
+  --accent: #1d5fd1;
+  --accent-soft: #e6eefc;
+  --ok: #1e7f4f;
+  --ok-soft: #e5f4ec;
+  --warn: #a8670a;
+  --warn-soft: #fbf1df;
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+  --node-bg: #2f62c4;
+  --node-fg: #ffffff;
+  --node-sub: #d6e2fa;
+  --node-in: #e8762c;
+  --flow: #e8762c;
+  --p1: #2f62c4;
+  --p2: #0f8a7a;
+  --p3: #b8700c;
+  --p4: #b2456e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f141b; --surface: #171e28; --ink: #e6ebf2; --muted: #98a3b3; --line: #2a3442;
+    --accent: #6ea2ff; --accent-soft: #1b2a45; --ok: #5cc98f; --ok-soft: #173326;
+    --warn: #f0b052; --warn-soft: #3a2c14; color-scheme: dark;
+    --node-bg: #24447e; --node-fg: #eef3fc; --node-sub: #b5c8ec; --node-in: #b85a1e; --flow: #f08a45; --p1: #7aa7ff; --p2: #4fc7b4; --p3: #f0b052; --p4: #f08bb0;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f141b; --surface: #171e28; --ink: #e6ebf2; --muted: #98a3b3; --line: #2a3442;
+  --accent: #6ea2ff; --accent-soft: #1b2a45; --ok: #5cc98f; --ok-soft: #173326;
+  --warn: #f0b052; --warn-soft: #3a2c14; color-scheme: dark;
+  --node-bg: #24447e; --node-fg: #eef3fc; --node-sub: #b5c8ec; --node-in: #b85a1e; --flow: #f08a45; --p1: #7aa7ff; --p2: #4fc7b4; --p3: #f0b052; --p4: #f08bb0;
+}
+* { box-sizing: border-box; }
+/* workflow diagram */
+.diagram { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 12px; }
+.diagram svg { display: block; width: 100%; min-width: 720px; height: auto; font-family: var(--f-body); }
+.diagram .nd { fill: var(--node-bg); }
+.diagram .nd.in { fill: var(--node-in); }
+.diagram .t { fill: var(--node-fg); font-size: 15px; font-weight: 600; text-anchor: middle; }
+.diagram .s { fill: var(--node-sub); font-size: 13px; text-anchor: middle; }
+.diagram .s b, .diagram .t b { font-weight: 700; fill: var(--node-fg); }
+.diagram .fl { fill: none; stroke: var(--flow); stroke-width: 2.5; }
+.diagram .fb { fill: none; stroke: var(--flow); stroke-width: 1.6; stroke-dasharray: 6 5; }
+.diagram .ah { fill: var(--flow); }
+.diagram .lb { fill: var(--muted); font-size: 12.5px; font-family: var(--f-mono); }
+.diagram .lb.hot { fill: var(--warn); font-weight: 600; }
+.diagram .badge { fill: var(--warn-soft); stroke: var(--warn); stroke-width: 1.5; }
+.diagram .bt1 { fill: var(--warn); font-family: var(--f-mono); font-size: 22px; font-weight: 600; text-anchor: middle; }
+.diagram .bt2 { fill: var(--ink); font-size: 13px; text-anchor: middle; }
+.dlegend { display: flex; flex-wrap: wrap; gap: 18px; font-size: 0.85rem; color: var(--muted); align-items: center; }
+.dlegend svg { vertical-align: middle; margin-right: 6px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.55; padding-inline: 16px; padding-block: 40px 64px; }
+.wrap { max-width: 920px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: clamp(1.9rem, 4.5vw, 2.6rem); font-weight: 800; letter-spacing: -0.01em; }
+h2 { font-size: 1.4rem; font-weight: 700; }
+h3 { font-size: 1.02rem; font-weight: 700; }
+p { margin: 0; max-width: 68ch; }
+section { display: flex; flex-direction: column; gap: 16px; }
+.eyebrow { font-family: var(--f-mono); font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.lede { color: var(--muted); font-size: 1.06rem; }
+header { display: flex; flex-direction: column; gap: 12px; }
+
+/* headline strip */
+.verdict { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); background: var(--surface); border-radius: 10px; overflow: hidden; }
+.verdict > div { padding: 18px 20px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.verdict > div + div { border-left: 1px solid var(--line); }
+.verdict .big { font-family: var(--f-mono); font-size: 1.9rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.verdict .big.ok { color: var(--accent); }
+.verdict small { color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 640px) { .verdict { grid-template-columns: 1fr; } .verdict > div + div { border-left: 0; border-top: 1px solid var(--line); } }
+
+/* success-rate callout */
+.callout { background: var(--warn-soft); border: 1px solid var(--warn); border-radius: 10px; padding: 18px 20px; display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+.callout .rate { font-family: var(--f-mono); font-size: 2.4rem; font-weight: 600; color: var(--warn); line-height: 1; }
+.callout .rate small { display: block; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 6px; }
+.callout h3 { color: var(--ink); margin-bottom: 4px; }
+.callout p { font-size: 0.98rem; }
+.callout.key { background: var(--accent-soft); border-color: var(--accent); }
+.callout.key .rate { color: var(--accent); }
+.levers { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 0.95rem; }
+.savings { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.savings span { font-family: var(--f-mono); font-size: 0.8rem; padding: 3px 9px; border-radius: 5px; border: 1px solid var(--line); background: var(--surface); }
+.savings span.now { color: var(--warn); border-color: var(--warn); }
+.savings span.win { color: var(--ok); border-color: var(--ok); background: var(--ok-soft); }
+.shots { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.shot { font-family: var(--f-mono); font-size: 0.74rem; padding: 3px 8px; border-radius: 5px; border: 1px solid var(--line); background: var(--surface); }
+.shot.keep { border-color: var(--ok); color: var(--ok); background: var(--ok-soft); }
+.shot.drop { color: var(--muted); text-decoration: line-through; }
+@media (max-width: 560px) { .callout { grid-template-columns: 1fr; } }
+
+/* pipeline */
+.pipeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.step { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.step:first-child { border-top: 1px solid var(--line); }
+.step .n { font-family: var(--f-mono); font-size: 0.85rem; color: var(--accent); background: var(--accent-soft); border-radius: 6px; text-align: center; padding: 4px 0; }
+.step .body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.step .model { font-family: var(--f-mono); font-size: 0.82rem; color: var(--muted); }
+.step .note { font-size: 0.9rem; color: var(--muted); }
+.step .price { text-align: right; display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.chip { font-family: var(--f-mono); font-size: 0.74rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip.warn { color: var(--warn); background: var(--warn-soft); }
+.chip.na { color: var(--muted); background: var(--bg); border: 1px solid var(--line); }
+.loopnote { font-size: 0.9rem; color: var(--muted); border-left: 3px solid var(--line); padding-left: 12px; }
+
+/* tables */
+.tbl { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.94rem; }
+th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--f-mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--bg); }
+tr:last-child td { border-bottom: 0; }
+td.r, th.r { text-align: right; font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.total td { font-weight: 600; background: var(--bg); }
+tr.hl td { background: var(--accent-soft); font-weight: 600; }
+
+/* calculator */
+.calc { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; }
+@media (max-width: 720px) { .calc { grid-template-columns: 1fr; } }
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-content: start; }
+.field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.field label { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+.field select, .field input[type=number] { font: inherit; font-family: var(--f-mono); font-size: 0.92rem; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); width: 100%; }
+.field select:focus-visible, .field input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.check { flex-direction: row; align-items: center; gap: 8px; grid-column: 1 / -1; font-size: 0.9rem; }
+.check input { accent-color: var(--accent); width: 18px; height: 18px; }
+.result { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.result .total { font-family: var(--f-mono); font-size: 2.2rem; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.rows { display: flex; flex-direction: column; gap: 6px; font-size: 0.92rem; }
+.rows div { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dashed var(--line); padding-bottom: 4px; }
+.rows span:last-child { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+.bar { height: 10px; border-radius: 5px; background: var(--bg); border: 1px solid var(--line); overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.8rem; color: var(--muted); }
+.legend b { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 5px; vertical-align: -1px; }
+.presets { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; }
+.presets button { font: inherit; font-size: 0.82rem; padding: 5px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer; }
+.presets button:hover { border-color: var(--accent); color: var(--accent); }
+.presets button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* best-practice diagram */
+.bp { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 12px; }
+.bp svg { display: block; width: 100%; min-width: 760px; height: auto; font-family: var(--f-body); }
+.bp .p1 { --pc: var(--p1); } .bp .p2 { --pc: var(--p2); } .bp .p3 { --pc: var(--p3); } .bp .p4 { --pc: var(--p4); }
+.bp .chev { fill: var(--pc); }
+.bp .ct { fill: var(--bg); font-family: var(--f-display); font-size: 16px; font-weight: 700; text-anchor: middle; }
+.bp .cn { font-family: var(--f-mono); font-weight: 600; }
+.bp .nb { fill: var(--bg); stroke: var(--line); }
+.bp .gl { fill: none; stroke: var(--pc); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.bp .gl .fillp { fill: var(--pc); stroke: none; }
+.bp .nt { fill: var(--ink); font-size: 15px; font-weight: 600; }
+.bp .nd2 { fill: var(--muted); font-size: 12.5px; }
+.bp .bpl { fill: none; stroke: var(--pc); stroke-width: 2; stroke-dasharray: 4 4; }
+.bp .bpah { fill: var(--muted); }
+.bp .band { fill: var(--accent-soft); stroke: var(--accent); }
+.bp .bt { fill: var(--ink); font-family: var(--f-display); font-size: 16px; font-weight: 700; text-anchor: middle; }
+.bp .bs { fill: var(--muted); font-size: 13px; text-anchor: middle; }
+.assume { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.guides { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 640px) { .guides { grid-template-columns: 1fr; } }
+.guide { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); text-decoration: none; min-width: 0; }
+.guide:hover { border-color: var(--accent); }
+.guide:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.guide h4 { margin: 0; font-family: var(--f-display); font-size: 1rem; font-weight: 700; color: var(--accent); }
+.guide span { font-size: 0.85rem; color: var(--muted); }
+.msr { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 12px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); min-width: 0; }
+.msr h4 { margin: 0; font-family: var(--f-display); font-size: 1.05rem; font-weight: 700; }
+.msr ul { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; font-size: 0.95rem; }
+.msr .tpl { font-family: var(--f-mono); font-size: 0.85rem; color: var(--warn); background: var(--warn-soft); border: 1px solid var(--warn); border-radius: 8px; padding: 10px 12px; overflow-wrap: anywhere; }
+.msr .diagram { padding: 8px; }
+.msr .diagram svg { min-width: 560px; max-width: 680px; margin: 0 auto; }
+.diagram .ref { fill: var(--surface); stroke: var(--node-bg); stroke-width: 1.5; }
+.diagram .rt { fill: var(--ink); font-size: 14px; font-weight: 600; text-anchor: middle; }
+.diagram .rs { fill: var(--muted); font-size: 12.5px; text-anchor: middle; }
+.samples { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 640px) { .samples { grid-template-columns: 1fr; } }
+.sample { display: flex; flex-direction: column; gap: 8px; min-width: 0; margin: 0; }
+.sample figcaption { font-size: 0.85rem; color: var(--muted); }
+.sample figcaption b { color: var(--ink); font-weight: 600; }
+.refs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.refs img, .sample .sb { width: 100%; display: block; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); }
+.refs img { aspect-ratio: 9 / 16; object-fit: cover; }
+.sample .sb { aspect-ratio: 1 / 1; object-fit: contain; max-height: 260px; }
+.agentic .diagram svg { min-width: 760px; }
+.diagram .zone { fill: var(--accent-soft); }
+.diagram .box { fill: var(--surface); stroke: var(--ink); stroke-width: 1.5; }
+.diagram .bx { fill: var(--ink); font-size: 15px; font-weight: 600; text-anchor: middle; }
+.diagram .bxs { fill: var(--ink); font-size: 13px; text-anchor: middle; }
+.diagram .pill { fill: var(--node-bg); }
+.diagram .pt { fill: var(--node-fg); font-size: 13px; }
+.diagram .sv1 { fill: var(--accent); font-family: var(--f-display); font-size: 14px; font-weight: 700; text-anchor: middle; }
+.diagram .sv2 { fill: var(--ink); font-family: var(--f-display); font-size: 18px; font-weight: 700; text-anchor: middle; }
+.diagram .fl2 { fill: none; stroke: var(--node-bg); stroke-width: 2.5; }
+.diagram .ah2 { fill: var(--node-bg); }
+.diagram .pp1 { fill: var(--ink); } .diagram .pp2 { fill: var(--node-bg); } .diagram .pp3 { fill: var(--node-in); }
+.diagram .ul { fill: var(--ink); font-size: 14px; text-anchor: middle; }
+.sample video { width: 100%; display: block; border-radius: 6px; border: 1px solid var(--line); background: #000; aspect-ratio: 16 / 9; }
+code { font-family: var(--f-mono); font-size: 0.86em; background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+body { padding-block: 24px 40px; }
+@media (max-width: 640px) { .presets button { min-height: 44px; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+<section>
+  <h2>Workflow: one 30s video clip</h2>
+  <p class="lede">Six steps for <strong>one 30s clip</strong> (3 usable 10s shots), with the model and unit price at each step. A 20-minute drama runs it 40 times.</p>
+  <div class="diagram">
+    <svg viewBox="0 0 1000 600" role="img" aria-labelledby="dg-title">
+      <title id="dg-title">Short drama workflow for one 30s video clip: input and template, script planning, reference images, storyboard prompt and generation, video prompt and generation, video enhancement, done, with feedback and retake loops</title>
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+        <marker id="ahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+      </defs>
+
+      <!-- feedback loops (dashed), drawn first so boxes sit on top -->
+      <path class="fb" d="M480,134 V162 H405 V44 H455 V66" marker-end="url(#ah)"/>
+      <path class="fb" d="M900,70 V40 H555 V66" marker-end="url(#ah)"/>
+      <path class="fb" d="M948,250 V22 H505 V66" marker-end="url(#ah)"/>
+      <path class="fb" d="M900,314 V340 H505 V318" marker-end="url(#ah)"/>
+      <path class="fb" d="M960,402 H988 V282 H964" marker-end="url(#ah)"/>
+
+      <!-- main flow (solid) -->
+      <path class="fl" d="M240,102 H426" marker-end="url(#ahs)"/>
+      <path class="fl" d="M600,102 H636" marker-end="url(#ahs)"/>
+      <path class="fl" d="M785,134 V190 H505 V246" marker-end="url(#ahs)"/>
+      <path class="fl" d="M630,282 H686" marker-end="url(#ahs)"/>
+      <path class="fl" d="M380,282 H350 V422 H376" marker-end="url(#ahs)"/>
+      <path class="fl" d="M630,422 H686" marker-end="url(#ahs)"/>
+      <path class="fl" d="M825,314 V386" marker-end="url(#ahs)"/>
+      <path class="fl" d="M960,440 H975 V476 H880 V458" marker-end="url(#ahs)"/>
+      <path class="fl" d="M800,454 V512" marker-end="url(#ahs)"/>
+      <path class="fl" d="M690,548 H604" marker-end="url(#ahs)"/>
+
+      <!-- nodes -->
+      <rect class="nd in" x="20" y="62" width="220" height="80" rx="6"/>
+      <text class="t" x="130" y="90">Input: Topic &amp; Idea</text>
+      <text class="s" x="130" y="111">Template selection</text>
+      <text class="s" x="130" y="129">Type, format, style, mood</text>
+
+      <rect class="nd" x="430" y="70" width="170" height="64" rx="6"/>
+      <text class="t" x="515" y="98">Script Planning</text>
+      <text class="s" x="515" y="118">Seed 2.1 Pro</text>
+
+      <rect class="nd" x="640" y="70" width="290" height="64" rx="6"/>
+      <text class="t" x="785" y="98">Reference Image Generation</text>
+      <text class="s" x="785" y="118">Seedream 5.0 Pro 2K · <tspan font-weight="700">$0.09</tspan></text>
+
+      <rect class="nd" x="380" y="250" width="250" height="64" rx="6"/>
+      <text class="t" x="505" y="278">Storyboard Prompt Generation</text>
+      <text class="s" x="505" y="298">Seed 2.1 Pro</text>
+
+      <rect class="nd" x="690" y="250" width="270" height="64" rx="6"/>
+      <text class="t" x="825" y="278">Storyboard Generation</text>
+      <text class="s" x="825" y="298">Seedream 5.0 Pro 2K · <tspan font-weight="700">$0.09</tspan></text>
+
+      <rect class="nd" x="380" y="390" width="250" height="64" rx="6"/>
+      <text class="t" x="505" y="418">Video Prompt Generation</text>
+      <text class="s" x="505" y="438">Seed 2.1 Pro</text>
+
+      <rect class="nd" x="690" y="390" width="270" height="64" rx="6"/>
+      <text class="t" x="825" y="418">Video Generation</text>
+      <text class="s" x="825" y="438">Seedance 2.5 720p 10s · <tspan font-weight="700">$3.88</tspan></text>
+
+      <rect class="nd" x="690" y="516" width="270" height="64" rx="6"/>
+      <text class="t" x="825" y="544">Video Enhancement</text>
+      <text class="s" x="825" y="564">720p → 1080p · <tspan font-weight="700">$8.26</tspan> for all 20 min</text>
+
+      <rect class="nd in" x="480" y="526" width="120" height="44" rx="6"/>
+      <text class="t" x="540" y="553">Done</text>
+
+      <!-- scope badge: diagram covers one 30s clip -->
+      <rect class="badge" x="20" y="184" width="220" height="68" rx="8"/>
+      <text class="bt1" x="130" y="214">30s CLIP</text>
+      <text class="bt2" x="130" y="238">3 × 10s shots · repeat ×40</text>
+
+      <!-- labels -->
+      <text class="lb" x="620" y="16">revise script</text>
+      <text class="lb" x="560" y="356">revise prompt</text>
+      <text class="lb hot" x="884" y="494">retake</text>
+      <text class="lb" x="20" y="300">Per 30s clip:</text>
+      <text class="lb" x="20" y="320">10 reference images</text>
+      <text class="lb" x="20" y="340">12 storyboards</text>
+      <text class="lb hot" x="20" y="360">6 videos · 3 kept (50%)</text>
+    </svg>
+  </div>
+  <div class="dlegend">
+    <span><svg width="34" height="10" aria-hidden="true"><line x1="0" y1="5" x2="34" y2="5" style="stroke:var(--flow)" stroke-width="2.5"/></svg>Main flow</span>
+    <span><svg width="34" height="10" aria-hidden="true"><line x1="0" y1="5" x2="34" y2="5" style="stroke:var(--flow)" stroke-width="1.6" stroke-dasharray="6 5"/></svg>Feedback / redo</span>
+  </div>
+  <ol class="pipeline">
+    <li class="step"><span class="n">1</span><div class="body"><h3>Input: topic, idea and template</h3><span class="note">Premise plus type, format, style and mood.</span></div><div class="price"><span class="chip na">no cost</span></div></li>
+    <li class="step"><span class="n">2</span><div class="body"><h3>Script planning</h3><span class="model">Seed 2.1 Pro</span><span class="note">Revised until approved.</span></div><div class="price"><span class="chip na">negligible</span></div></li>
+    <li class="step"><span class="n">3</span><div class="body"><h3>Reference image generation</h3><span class="model">Seedream 5.0 Pro 2K</span><span class="note">10 per clip, 400 for 20 minutes.</span></div><div class="price"><span class="num">$0.09 / img</span><span class="num" style="font-size:.8rem;color:var(--muted)">+ $0.01 prompt</span></div></li>
+    <li class="step"><span class="n">4</span><div class="body"><h3>Storyboard prompt + storyboard generation</h3><span class="model">Seed 2.1 Pro → Seedream 5.0 Pro 2K</span><span class="note">12 frames per clip, 480 for 20 minutes.</span></div><div class="price"><span class="num">$0.09 / img</span><span class="num" style="font-size:.8rem;color:var(--muted)">+ $0.01 prompt</span></div></li>
+    <li class="step"><span class="n">5</span><div class="body"><h3>Video prompt + video generation</h3><span class="model">Seed 2.1 Pro → Seedance 2.5 720p I2V, 10s</span><span class="note">6 generations per clip to get 3 usable shots.</span></div><div class="price"><span class="num">$3.88 / 10s</span><span class="chip warn">50% success</span></div></li>
+    <li class="step"><span class="n">6</span><div class="body"><h3>Video enhancement, 720p → 1080p</h3><span class="model">Video Enhancement (Std 1080p)</span><span class="note">Applied once to the final 20 minutes.</span></div><div class="price"><span class="num">$0.4132 / min</span></div></li>
+  </ol>
+  <p class="loopnote">Dashed lines are redos when output is rejected. The 50% success rate covers them at the video step.</p>
+</section>
+
+<section>
+  <h2>Sensitivity to success rate</h2>
+  <p class="lede">720p image-to-video, all other inputs unchanged. Generations per clip = 3 ÷ success rate.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Video success rate</th><th class="r">Gens per clip</th><th class="r">Gens total</th><th class="r">Per clip</th><th class="r">20 min</th></tr></thead>
+      <tbody>
+        <tr><td>100% (no retakes)</td><td class="r">3</td><td class="r">120</td><td class="r">$13.86</td><td class="r">$563</td></tr>
+        <tr><td>75%</td><td class="r">4</td><td class="r">160</td><td class="r">$17.75</td><td class="r">$718</td></tr>
+        <tr class="hl"><td>50% (basis of this estimate)</td><td class="r">6</td><td class="r">240</td><td class="r">$25.52</td><td class="r">$1,029</td></tr>
+        <tr><td>33%</td><td class="r">9</td><td class="r">360</td><td class="r">$37.18</td><td class="r">$1,495</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Try other assumptions</h2>
+  <p class="lede">Change any input to recalculate.</p>
+  <div class="calc">
+    <div class="controls">
+      <div class="presets" role="group" aria-label="Presets">
+        <button type="button" data-preset="base">Base: 50% success</button>
+        <button type="button" data-preset="first">100% success</button>
+        <button type="button" data-preset="once">References once per drama</button>
+      </div>
+      <div class="field"><label for="res">Resolution</label><select id="res"><option value="480">480p</option><option value="720" selected>720p</option><option value="1080">1080p</option></select></div>
+      <div class="field"><label for="rate">Video success rate (%)</label><input id="rate" type="number" min="10" max="100" step="5" value="50"></div>
+      <div class="field"><label for="shots">Usable 10s shots per clip</label><input id="shots" type="number" min="1" max="12" step="1" value="3"></div>
+      <div class="field"><label for="mins">Drama length (min)</label><input id="mins" type="number" min="1" max="120" step="1" value="20"></div>
+      <div class="field"><label for="refs">Reference images per clip</label><input id="refs" type="number" min="0" max="50" step="1" value="10"></div>
+      <div class="field"><label for="sb">Storyboard images per clip</label><input id="sb" type="number" min="0" max="50" step="1" value="12"></div>
+      <div class="field"><label for="refsOnce">One-off reference images</label><input id="refsOnce" type="number" min="0" max="500" step="1" value="0"></div>
+      <div class="field"><label for="llm">Prompt cost per item ($)</label><input id="llm" type="number" min="0" max="1" step="0.01" value="0.01"></div>
+      <label class="field check" for="enh"><input id="enh" type="checkbox" checked> Add 1080p enhancement ($0.4132/min, skipped at 1080p)</label>
+    </div>
+    <div class="result" aria-live="polite">
+      <span class="eyebrow">Estimated total</span>
+      <span class="total" id="out-total">$1,029</span>
+      <span class="lede" id="out-sub">$25.52 per 30s clip · 40 clips</span>
+      <div class="bar" id="bar" aria-hidden="true"></div>
+      <div class="legend"><span><b style="background:var(--accent)"></b>Video</span><span><b style="background:var(--ok)"></b>Images</span><span><b style="background:var(--warn)"></b>Prompts</span><span><b style="background:var(--muted)"></b>Enhancement</span></div>
+      <div class="rows" id="rows"></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Best practice</h2>
+  <p class="lede">The biggest saving comes from making more video generations usable.</p>
+  <div class="callout key" role="note" aria-label="Key to saving cost">
+    <div class="rate">−30%<small>at 75% success</small></div>
+    <div>
+      <h3>To cut the drama's cost, raise the quality and success rate of video generation</h3>
+      <p>Video is about 90% of the cost, and every failed take is paid for ($3.89 with its prompt) and then generated again. Raising the success rate saves far more than cutting images or prompts.</p>
+      <div class="savings" aria-label="20-minute cost by video success rate">
+        <span class="now">50% success · $1,029 today</span><span class="win">75% · $718 (−$311)</span><span class="win">100% · $563 (−$466)</span>
+      </div>
+      <ul class="levers">
+        <li><strong>Lock assets first:</strong> fixed character sheets and locations keep faces and sets from drifting between shots, a common reason takes are rejected.</li>
+        <li><strong>Fix problems at the storyboard:</strong> a storyboard image costs $0.10 and a video take $3.89, about 39× more, so approve every keyframe before generating video from it.</li>
+        <li><strong>Generate video from approved keyframes (I2V)</strong> and chain the last frame of one shot into the next, so motion starts from a known good image.</li>
+      </ul>
+    </div>
+  </div>
+  <h3>Four phases</h3>
+  <div class="bp">
+      <svg viewBox="0 0 1000 392" role="img" aria-labelledby="bp-title">
+      <title id="bp-title">Best practice in four phases: lock assets, generate, link continuity, voice and sync, all aimed at a higher video success rate and lower drama cost</title>
+      <defs><marker id="bpa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="bpah" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+      <g class="p1">
+      <polygon class="chev" points="12,10 230,10 244,37 230,64 12,64 12,37"/>
+      <text class="ct" x="132.0" y="43"><tspan class="cn">1</tspan>  Lock assets</text>
+      <rect class="nb" x="12" y="82" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(22,91)"><rect x="10" y="4" width="24" height="36" rx="2"/><path d="M15,13 H29 M15,19 H29 M15,25 H29 M15,31 H24"/></g>
+      <text class="nt" x="76" y="109">Script breakdown</text>
+      <text class="nd2" x="76" y="128">10–15 scenes · 30–50 shots</text>
+      <rect class="nb" x="12" y="156" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(22,165)"><circle cx="22" cy="14" r="8"/><path d="M6,40 Q22,20 38,40"/></g>
+      <text class="nt" x="76" y="183">Character sheets</text>
+      <text class="nd2" x="76" y="202">Multi-angle, locked</text>
+      <rect class="nb" x="12" y="230" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(22,239)"><path d="M3,38 L15,18 L23,29 L29,21 L41,38 Z"/><circle cx="34" cy="9" r="4"/></g>
+      <text class="nt" x="76" y="257">Locations</text>
+      <text class="nd2" x="76" y="276">Static backgrounds</text>
+      <path class="bpl" d="M128.0,292 V316" marker-end="url(#bpa)"/>
+      </g>
+      <g class="p2">
+      <polygon class="chev" points="260,10 478,10 492,37 478,64 260,64 274,37"/>
+      <text class="ct" x="380.0" y="43"><tspan class="cn">2</tspan>  Generate</text>
+      <rect class="nb" x="260" y="82" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(270,91)"><rect x="3" y="7" width="38" height="30" rx="2"/><circle cx="13" cy="17" r="3"/><path d="M3,33 L15,24 L23,30 L31,22 L41,30"/></g>
+      <text class="nt" x="324" y="109">Keyframes</text>
+      <text class="nd2" x="324" y="128">1 image per shot</text>
+      <rect class="nb" x="260" y="156" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(270,165)"><rect x="3" y="7" width="38" height="30" rx="2"/><path class="fillp" d="M18,14 V30 L31,22 Z"/></g>
+      <text class="nt" x="324" y="183">Add motion</text>
+      <text class="nd2" x="324" y="202">3–10s clips</text>
+      <path class="bpl" d="M376.0,218 V316" marker-end="url(#bpa)"/>
+      </g>
+      <g class="p3">
+      <polygon class="chev" points="508,10 726,10 740,37 726,64 508,64 522,37"/>
+      <text class="ct" x="628.0" y="43"><tspan class="cn">3</tspan>  Link continuity</text>
+      <rect class="nb" x="508" y="82" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(518,91)"><rect x="2" y="12" width="13" height="20" rx="1"/><rect x="29" y="12" width="13" height="20" rx="1"/><path d="M17,22 H27" stroke-dasharray="2 2"/></g>
+      <text class="nt" x="572" y="109">Interpolation</text>
+      <text class="nd2" x="572" y="128">Start + end frame</text>
+      <rect class="nb" x="508" y="156" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(518,165)"><rect x="2" y="14" width="22" height="16" rx="8"/><rect x="20" y="14" width="22" height="16" rx="8"/></g>
+      <text class="nt" x="572" y="183">Last frame → next</text>
+      <text class="nd2" x="572" y="202">Keeps light and pose</text>
+      <rect class="nb" x="508" y="230" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(518,239)"><rect x="2" y="14" width="40" height="16" rx="2"/><path d="M10,14 V30 M18,14 V30 M26,14 V30 M34,14 V30" stroke-dasharray="2 2"/></g>
+      <text class="nt" x="572" y="257">Long shots</text>
+      <text class="nd2" x="572" y="276">15s+ continuous</text>
+      <path class="bpl" d="M624.0,292 V316" marker-end="url(#bpa)"/>
+      </g>
+      <g class="p4">
+      <polygon class="chev" points="756,10 974,10 988,37 974,64 756,64 770,37"/>
+      <text class="ct" x="876.0" y="43"><tspan class="cn">4</tspan>  Voice &amp; sync</text>
+      <rect class="nb" x="756" y="82" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(766,91)"><path d="M5,22 V22 M11,16 V28 M17,9 V35 M23,14 V30 M29,6 V38 M35,15 V29 M41,20 V24"/></g>
+      <text class="nt" x="820" y="109">Voice clone</text>
+      <text class="nd2" x="820" y="128">1 voice per character</text>
+      <rect class="nb" x="756" y="156" width="232" height="62" rx="8"/>
+      <g class="gl" transform="translate(766,165)"><circle cx="22" cy="22" r="18"/><path d="M12,26 Q22,35 32,26 Q22,30 12,26 Z"/><circle cx="15" cy="16" r="1.5" class="fillp"/><circle cx="29" cy="16" r="1.5" class="fillp"/></g>
+      <text class="nt" x="820" y="183">Lip-sync</text>
+      <text class="nd2" x="820" y="202">Audio + face</text>
+      <path class="bpl" d="M872.0,218 V316" marker-end="url(#bpa)"/>
+      </g>
+      <rect class="band" x="12" y="322" width="976" height="56" rx="8"/>
+      <text class="bt" x="500" y="347">Higher video success rate = lower drama cost</text>
+      <text class="bs" x="500" y="366">Consistent characters, sets, lighting and voices across all 40 clips</text>
+      </svg>
+  </div>
+  <h3>Further guides</h3>
+  <div class="guides">
+    <div class="msr">
+      <span class="eyebrow">Seedance 2.0 feature</span>
+      <h4>Multi-Subject Reference</h4>
+      <p>Seedance 2.0 takes several reference images at once: multi-angle views of a subject (front, side, back) and multi-image references such as scene layouts and storyboards. Characters and staging stay the same from shot to shot, which raises the video success rate.</p>
+      <ul>
+        <li>If the images must be used in a set order, upload them in that order.</li>
+        <li>In the prompt, refer to them as "Image 1", "Image 2" … "Image n".</li>
+        <li>Prompt template:</li>
+      </ul>
+      <div class="tpl">Reference/extract the [subject] in [Image n] to generate [scene description], keeping the characteristics of the [subject] consistent.</div>
+      <div class="diagram">
+        <svg viewBox="0 0 680 280" role="img" aria-labelledby="msr-title">
+          <title id="msr-title">Multi-subject reference: scene description leads to image generation, which produces multi-angle subject references and a storyboard; both are passed to video generation as Image 1 to n, with feedback loops back to the scene description</title>
+          <defs>
+            <marker id="mah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+            <marker id="mahs" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker>
+          </defs>
+          <path class="fb" d="M260,128 H240 V40 H256" marker-end="url(#mah)"/>
+          <path class="fb" d="M420,252 H450 V40 H424" marker-end="url(#mah)"/>
+          <path class="fl" d="M340,64 V112" marker-end="url(#mahs)"/>
+          <path class="fl" d="M340,164 V212" marker-end="url(#mahs)"/>
+          <path class="fl" d="M260,148 H204" marker-end="url(#mahs)"/>
+          <path class="fl" d="M420,148 H476" marker-end="url(#mahs)"/>
+          <path class="fl" d="M110,172 V240 H256" marker-end="url(#mahs)"/>
+          <path class="fl" d="M570,172 V240 H424" marker-end="url(#mahs)"/>
+
+          <rect class="nd in" x="260" y="16" width="160" height="48" rx="6"/>
+          <text class="t" x="340" y="45">Scene Description</text>
+          <rect class="nd" x="260" y="116" width="160" height="48" rx="6"/>
+          <text class="t" x="340" y="145">Image Generation</text>
+          <rect class="nd" x="260" y="216" width="160" height="48" rx="6"/>
+          <text class="t" x="340" y="245">Video Generation</text>
+
+          <rect class="ref" x="20" y="112" width="180" height="60" rx="6"/>
+          <text class="rt" x="110" y="137">Multi-angle subject</text>
+          <text class="rs" x="110" y="157">front · side · back</text>
+          <rect class="ref" x="480" y="112" width="180" height="60" rx="6"/>
+          <text class="rt" x="570" y="137">Storyboard</text>
+          <text class="rs" x="570" y="157">numbered panels 1–4</text>
+
+          <text class="lb" x="124" y="232">as Image 1…n</text>
+          <text class="lb" x="470" y="232">as Image 1…n</text>
+          <text class="lb" x="200" y="30">revise</text>
+        </svg>
+      </div>
+      <div class="samples">
+        <figure class="sample">
+          <figcaption><b>Multi-angle subject references</b> · front, side and back views (Image 1–3)</figcaption>
+          <div class="refs">
+            <img src="assets/multi-subject/ref-front.jpg" alt="Character reference, front view" loading="lazy">
+            <img src="assets/multi-subject/ref-side.jpg" alt="Character reference, side view" loading="lazy">
+            <img src="assets/multi-subject/ref-back.jpg" alt="Character reference, back view" loading="lazy">
+          </div>
+          <video src="assets/multi-subject/cafe.mp4" poster="assets/multi-subject/cafe-poster.jpg" controls muted loop playsinline preload="metadata" aria-label="Sample video: the referenced character in a new café scene"></video>
+          <figcaption>Result: the same character in a new café scene, consistent with the references.</figcaption>
+        </figure>
+        <figure class="sample">
+          <figcaption><b>Storyboard</b> · four numbered panels used as Image 1–4</figcaption>
+          <img class="sb" src="assets/multi-subject/storyboard.jpg" alt="Four-panel storyboard: wide shot of two fighters facing off, the hooded fighter in a stance, a close-up of the woman in red, and her standing on cracked ground facing him" loading="lazy">
+          <video src="assets/multi-subject/duel.mp4" poster="assets/multi-subject/duel-poster.jpg" controls muted loop playsinline preload="metadata" aria-label="Sample video: duel generated from the storyboard"></video>
+          <figcaption>Result: the duel follows the storyboard's framing and order.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+  <h3>Agentic Workflow</h3>
+  <p>Package the drama workflow as a <code>Skill.md</code> once, then run the same skill for internal users in ArkClaw or for external users through BytePlus Agent Service.</p>
+  <div class="agentic">
+    <div class="diagram">
+      <svg viewBox="0 72 1000 456" role="img" aria-labelledby="ag-title">
+        <title id="ag-title">Agentic application development and deployment: an AI skill developer builds a Skill.md in an agent harness; internal users run it in ArkClaw; external users reach it through a web application, agent UI and API gateway into a session on BytePlus Agent Service</title>
+        <defs><marker id="aga" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="ah2" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+
+        <!-- shaded zones: Agent Service panel, ArkClaw band, Session band -->
+        <rect class="zone" x="735" y="80" width="255" height="440"/>
+        <rect class="zone" x="355" y="205" width="380" height="125"/>
+        <rect class="zone" x="520" y="380" width="215" height="140"/>
+
+        <!-- flows -->
+        <path class="fl2" d="M110,122 H176" marker-end="url(#aga)"/>
+        <path class="fl2" d="M490,122 H556" marker-end="url(#aga)"/>
+        <path class="fl2" d="M600,144 V180 H465 V218" marker-end="url(#aga)"/>
+        <path class="fl2" d="M665,144 V394" marker-end="url(#aga)"/>
+        <path class="fl2" d="M110,272 H376" marker-end="url(#aga)"/>
+        <path class="fl2" d="M185,436 H114" marker-end="url(#aga)"/>
+        <path class="fl2" d="M335,436 H304" marker-end="url(#aga)"/>
+        <path class="fl2" d="M462,424 H429" marker-end="url(#aga)"/>
+        <path class="fl2" d="M425,448 H458" marker-end="url(#aga)"/>
+
+        <!-- people -->
+        <circle class="pp1" cx="60" cy="96" r="13"/><path class="pp1" d="M38,136 Q38,112 60,112 Q82,112 82,136 Z"/><text class="ul" x="60" y="156">AI Skill</text><text class="ul" x="60" y="174">Developer</text>
+        <circle class="pp2" cx="60" cy="246" r="13"/><path class="pp2" d="M38,286 Q38,262 60,262 Q82,262 82,286 Z"/><text class="ul" x="60" y="306">Internal</text><text class="ul" x="60" y="324">User</text>
+        <circle class="pp3" cx="60" cy="410" r="13"/><path class="pp3" d="M38,450 Q38,426 60,426 Q82,426 82,450 Z"/><text class="ul" x="60" y="470">External</text><text class="ul" x="60" y="488">User</text>
+
+        <!-- skill development -->
+        <rect class="nd" x="180" y="92" width="310" height="60" rx="4"/>
+        <text class="t" x="335" y="118">Skill Develop (Agent Harness)</text>
+        <text class="s" x="335" y="138">Claude, Codex, TraeWork, Hermes, …</text>
+        <rect class="nd in" x="560" y="100" width="130" height="44" rx="4"/>
+        <text class="t" x="625" y="127">Skill.md</text>
+
+        <!-- ArkClaw -->
+        <rect class="box" x="380" y="222" width="170" height="96" rx="8"/>
+        <text class="bx" x="465" y="244">ArkClaw</text>
+        <rect class="nd in" x="398" y="258" width="134" height="44" rx="4"/>
+        <text class="t" x="465" y="285">Skill.md</text>
+
+        <!-- external path -->
+        <rect class="box" x="185" y="402" width="115" height="68" rx="4"/>
+        <text class="bx" x="242" y="431">Web</text>
+        <text class="bx" x="242" y="451">Application</text>
+        <rect class="box" x="335" y="408" width="90" height="56" rx="4"/>
+        <text class="bx" x="380" y="441">Agent UI</text>
+        <rect class="nd" x="462" y="408" width="86" height="56" rx="4"/>
+        <text class="t" x="505" y="432">API</text>
+        <text class="t" x="505" y="451">Gateway</text>
+
+        <!-- session -->
+        <rect class="box" x="565" y="398" width="150" height="100" rx="8"/>
+        <text class="bx" x="640" y="420">Session</text>
+        <rect class="nd in" x="580" y="436" width="120" height="44" rx="4"/>
+        <text class="t" x="640" y="463">Skill.md</text>
+
+        <!-- Agent Service panel -->
+        <text class="sv1" x="862" y="108">BytePlus</text>
+        <text class="sv2" x="862" y="132">Agent Service</text>
+        <text class="bxs" x="862" y="152">(Managed Agent, AgentKit,</text>
+        <text class="bxs" x="862" y="169">ArkClaw)</text>
+        <rect class="box" x="760" y="188" width="205" height="80" rx="6" style="stroke:var(--line)"/>
+        <text class="bx" x="862" y="210">Customer</text>
+        <text class="bxs" x="774" y="232" style="text-anchor:start">• Define agent task</text>
+        <text class="bxs" x="774" y="252" style="text-anchor:start">• Tools &amp; permission</text>
+        <rect class="pill" x="760" y="282" width="205" height="34" rx="6"/><text class="pt" x="774" y="304">• Dedicated harness &amp; context</text>
+        <rect class="pill" x="760" y="326" width="205" height="34" rx="6"/><text class="pt" x="774" y="348">• Session &amp; memory management</text>
+        <rect class="pill" x="760" y="370" width="205" height="34" rx="6"/><text class="pt" x="774" y="392">• Real-time monitoring</text>
+        <rect class="pill" x="760" y="414" width="205" height="34" rx="6"/><text class="pt" x="774" y="436">• PAYG &amp; serverless</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  var PER15 = { 480: 10.7 * 0.240178, 720: 10.7 * 0.543403, 1080: 11.7 * 1.215 };
+  var IMG = 0.09, ENH = 0.4132;
+  var $ = function (id) { return document.getElementById(id); };
+  var ids = ["res", "rate", "shots", "mins", "refs", "sb", "refsOnce", "llm", "enh"];
+  function num(id) { var v = parseFloat($(id).value); return isFinite(v) && v >= 0 ? v : 0; }
+  function money(v) { return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function calc() {
+    var p10 = PER15[$("res").value] / 1.5;
+    var rate = Math.min(Math.max(num("rate"), 1), 100) / 100;
+    var shots = num("shots"), mins = num("mins"), refs = num("refs"), sb = num("sb"), once = num("refsOnce"), llm = num("llm");
+    var gens = Math.ceil(shots / rate - 1e-9);
+    var clips = mins * 2;
+    var video = clips * gens * p10;
+    var imgs = (clips * (refs + sb) + once) * IMG;
+    var prompts = (clips * (refs + sb + gens) + once) * llm;
+    var enh = $("enh").checked && $("res").value !== "1080" ? mins * ENH : 0;
+    var total = video + imgs + prompts + enh;
+    var perClip = clips ? (total - enh) / clips : 0;
+    $("out-total").textContent = "$" + Math.round(total).toLocaleString("en-US");
+    $("out-sub").textContent = money(perClip) + " per 30s clip · " + clips + " clips · " + gens + " gens per clip at " + Math.round(rate * 100) + "% success";
+    var parts = [["Video (" + clips * gens + " gens)", video, "var(--accent)"], ["Images", imgs, "var(--ok)"], ["Prompts", prompts, "var(--warn)"], ["Enhancement", enh, "var(--muted)"]];
+    $("bar").innerHTML = parts.map(function (p) { return total ? '<i style="width:' + (p[1] / total * 100).toFixed(2) + '%;background:' + p[2] + '"></i>' : ""; }).join("");
+    $("rows").innerHTML = parts.map(function (p) { return "<div><span>" + p[0] + "</span><span>" + money(p[1]) + "</span></div>"; }).join("");
+  }
+  var PRESETS = {
+    base: { res: "720", rate: 50, shots: 3, mins: 20, llm: 0.01, refs: 10, sb: 12, refsOnce: 0 },
+    first: { res: "720", rate: 100, shots: 3, mins: 20, llm: 0.01, refs: 10, sb: 12, refsOnce: 0 },
+    once: { res: "720", rate: 50, shots: 3, mins: 20, llm: 0.01, refs: 0, sb: 12, refsOnce: 30 }
+  };
+  document.querySelectorAll("[data-preset]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var p = PRESETS[b.getAttribute("data-preset")];
+      Object.keys(p).forEach(function (k) { $(k).value = p[k]; });
+      calc();
+    });
+  });
+  ids.forEach(function (id) { $(id).addEventListener("input", calc); $(id).addEventListener("change", calc); });
+  calc();
+})();
+</script>
+</body>
+</html>
